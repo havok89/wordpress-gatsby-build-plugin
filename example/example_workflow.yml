@@ -1,0 +1,55 @@
+name: Build and deploy
+on: [push, repository_dispatch]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [12.x]
+    steps:
+    - uses: actions/checkout@v1
+    - name: Use Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v1
+      with:
+        node-version: ${{ matrix.node-version }}
+    - name: npm install, build
+      run: |
+        npm install
+        npm ci
+        npm run build
+    - name: Upload public dir
+      uses: actions/upload-artifact@v1
+      with:
+        name: public
+        path: public
+      env:
+        CI: true
+  deploy:
+    name: Deploy
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v1
+    - name: Download public dir
+      uses: actions/download-artifact@v1
+      with:
+        name: public
+    - name: Upload ftp
+      uses: havok89/ftp-action@releases/v3
+      with:
+        host: ${{ secrets.ftp_host }}
+        user: ${{ secrets.ftp_username }}
+        password: ${{ secrets.ftp_password }}
+        localDir: "public"
+  cleanup_job:
+    needs: [deploy]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+    - name: Delete artifacts
+      uses: christian-korneck/delete-run-artifacts-action@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.FOR_WEBHOOKS_SECRET }}
+      with:
+        parent_runid: ${{github.run_id}}
+        parent_repo: ${{github.repository}}
