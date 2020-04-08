@@ -16,9 +16,6 @@ Since Gatsby creates a static site I need a solution to trigger a build of the s
 
 I am using Github Actions to build my site along with an FTP action to publish the built site to my hosting space - see my fork of the FTP action to include deleting everything in the remote folder that doesnt exist in the upload if that may be helpful for you too. havok89/ftp-action
 
-This build is now being triggered on a commit to master and also manually from within the WordPress CMS
-
---
 
 ## Usage
 To use this plugin you will need to create an access token for your github repo and update the settings in the CMS with this token and the repo name - the name should just be "username/reponame" e.g. havok89/wordpress-gatsby-build-plugin
